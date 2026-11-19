@@ -14,6 +14,7 @@ use App\Exceptions\Infrastructure\DatabaseOperationException;
 use App\Mapper\ListMapper;
 use App\Models\Liste;
 use App\Models\User;
+use App\Support\LikePattern;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -60,7 +61,7 @@ class ListService
         }
 
         if ($search) {
-            $query->where('lists.name', 'ILIKE', "%{$search}%");
+            $query->whereLike('lists.name', LikePattern::contains($search));
         }
 
         if ($filter === 'shared') {

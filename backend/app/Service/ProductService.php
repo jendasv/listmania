@@ -9,6 +9,7 @@ use App\Exceptions\Domain\ResourceNotFoundException;
 use App\Exceptions\Infrastructure\DatabaseOperationException;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\LikePattern;
 use Throwable;
 
 class ProductService
@@ -25,7 +26,7 @@ class ProductService
         $householdId = $user->household()?->id;
 
         return Product::where('household_id', $householdId)
-            ->where('name', 'like', '%'.$query.'%')
+            ->whereLike('name', LikePattern::contains($query))
             ->with(['preferredUnit', 'category'])
             ->orderBy('name')
             ->limit($limit)
@@ -52,7 +53,7 @@ class ProductService
         }
 
         if ($search !== null && $search !== '') {
-            $query->where('name', 'like', '%'.$search.'%');
+            $query->whereLike('name', LikePattern::contains($search));
         }
 
         $paginated = $query->paginate(50, page: $page);

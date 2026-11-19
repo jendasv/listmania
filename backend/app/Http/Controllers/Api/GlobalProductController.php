@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\GlobalProduct;
 use App\Service\OpenFoodFactsService;
+use App\Support\LikePattern;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -53,7 +54,7 @@ class GlobalProductController extends Controller
         }
 
         if ($query !== null && $query !== '') {
-            $results = GlobalProduct::where('name', 'like', '%'.$query.'%')
+            $results = GlobalProduct::whereLike('name', LikePattern::contains($query))
                 ->where(function ($q) use ($householdId) {
                     $q->whereNull('household_id')
                         ->orWhere('household_id', $householdId);
