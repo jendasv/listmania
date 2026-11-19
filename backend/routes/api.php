@@ -14,9 +14,10 @@ use App\Http\Controllers\Api\UnitController;
 use Illuminate\Support\Facades\Route;
 
 // Auth — public, rate limited
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+
 Route::middleware('throttle:auth')->prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });

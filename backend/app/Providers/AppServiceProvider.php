@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -76,6 +77,18 @@ class AppServiceProvider extends ServiceProvider
         // Auth endpoints — per IP, strict
         RateLimiter::for('auth', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // Login — a per-IP limit alone lets a distributed attack (many IPs)
+        // brute-force one account, so failures are also counted per account.
+        // The per-IP cap still stops one client from spraying many accounts.
+        RateLimiter::for('login', function (Request $request) {
+            $email = Str::transliterate(Str::lower($request->string('email')->toString()));
+
+            return [
+                Limit::perMinute(5)->by('login-account:'.$email),
+                Limit::perMinute(20)->by('login-ip:'.$request->ip()),
+            ];
         });
 
         // Global API — per user or IP
