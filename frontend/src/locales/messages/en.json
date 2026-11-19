@@ -184,7 +184,7 @@
     "inviteEmailPlaceholder": "Member's email",
     "saveNameBtn": "Save name",
     "nameSaved": "Name saved.",
-    "inviteSent": "Invitation sent to {email}.",
+    "inviteSent": "If {email} has an account, an invitation is on its way.",
     "pro": "Pro",
     "members": "Members",
     "joinedHouseholds": "Joined households",

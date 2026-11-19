@@ -28,13 +28,15 @@ class InvitationController extends Controller
         $user = $request->user();
         $household = $user->households()->wherePivot('role', HouseholdRole::Owner->value)->first();
 
-        $invitee = User::where('email', $request->email)->first();
-        if (! $invitee) {
-            return response()->json(['message' => 'No account found with this email address.'], 422);
+        if (Str::lower($request->email) === Str::lower($user->email)) {
+            return response()->json(['message' => 'You cannot invite yourself.'], 422);
         }
 
-        if ($invitee->id === $user->id) {
-            return response()->json(['message' => 'You cannot invite yourself.'], 422);
+        // Unknown and known addresses get the exact same response — anything
+        // else lets any owner probe which email addresses have an account.
+        $invitee = User::where('email', $request->email)->first();
+        if (! $invitee) {
+            return $this->invitationSentResponse();
         }
 
         $alreadyMember = $household->members()->where('users.id', $invitee->id)->exists();
@@ -57,16 +59,17 @@ class InvitationController extends Controller
         ]);
 
         $invitation->load(['household', 'invitedBy']);
-        Mail::to($invitee)->send(new HouseholdInvitation($invitation));
+        // Sent after the response is flushed: an SMTP round-trip only on the
+        // known-address path would make response time reveal what the
+        // identical response body hides.
+        dispatch(fn () => Mail::to($invitee)->send(new HouseholdInvitation($invitation)))->afterResponse();
 
-        return response()->json([
-            'message' => 'Invitation sent.',
-            'invitation' => [
-                'id' => $invitation->id,
-                'email' => $invitation->email,
-                'expiresAt' => $invitation->expires_at,
-            ],
-        ], 201);
+        return $this->invitationSentResponse();
+    }
+
+    private function invitationSentResponse(): JsonResponse
+    {
+        return response()->json(['message' => 'If an account exists for this email, an invitation has been sent.'], 202);
     }
 
     public function accept(Request $request, string $token): JsonResponse

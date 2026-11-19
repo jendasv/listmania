@@ -33,8 +33,8 @@ class InvitationTest extends TestCase
             'email' => $invitee->email,
         ]);
 
-        $response->assertStatus(201)
-            ->assertJsonFragment(['message' => 'Invitation sent.']);
+        $response->assertStatus(202)
+            ->assertExactJson(['message' => 'If an account exists for this email, an invitation has been sent.']);
 
         $this->assertDatabaseHas('invitations', [
             'email' => $invitee->email,
@@ -43,16 +43,33 @@ class InvitationTest extends TestCase
         ]);
     }
 
-    public function test_cannot_invite_unregistered_email(): void
+    public function test_unregistered_email_gets_same_response_without_sending(): void
     {
+        Mail::fake();
+        $owner = $this->createUserWithHousehold();
+        $invitee = User::factory()->create(['email' => 'someone@example.com']);
+
+        // Unknown first: after-response jobs are registered as app terminating
+        // callbacks, which the test app (shared across both calls) re-runs.
+        $unknown = $this->actingAs($owner)->postJson('/api/invitations', ['email' => 'nobody@example.com']);
+        $known = $this->actingAs($owner)->postJson('/api/invitations', ['email' => $invitee->email]);
+
+        $this->assertSame($known->status(), $unknown->status());
+        $this->assertSame($known->getContent(), $unknown->getContent());
+        $this->assertDatabaseMissing('invitations', ['email' => 'nobody@example.com']);
+        Mail::assertSentCount(1);
+    }
+
+    public function test_invitations_are_rate_limited_per_sender(): void
+    {
+        Mail::fake();
         $owner = $this->createUserWithHousehold();
 
-        $response = $this->actingAs($owner)->postJson('/api/invitations', [
-            'email' => 'nobody@example.com',
-        ]);
+        foreach (range(1, 10) as $i) {
+            $this->actingAs($owner)->postJson('/api/invitations', ['email' => "user{$i}@example.com"])->assertStatus(202);
+        }
 
-        $response->assertStatus(422)
-            ->assertJsonFragment(['message' => 'No account found with this email address.']);
+        $this->actingAs($owner)->postJson('/api/invitations', ['email' => 'user11@example.com'])->assertStatus(429);
     }
 
     public function test_cannot_invite_yourself(): void

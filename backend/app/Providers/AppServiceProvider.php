@@ -91,6 +91,12 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // Invitations send email to another user — capped per sender so an
+        // owner can't use the app to flood someone's inbox.
+        RateLimiter::for('invitations', function (Request $request) {
+            return Limit::perHour(10)->by('invitations:'.($request->user()?->id ?: $request->ip()));
+        });
+
         // Global API — per user or IP
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());

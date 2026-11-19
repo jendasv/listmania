@@ -184,7 +184,7 @@
     "inviteEmailPlaceholder": "E-mail člena",
     "saveNameBtn": "Uložit název",
     "nameSaved": "Název uložen.",
-    "inviteSent": "Pozvánka odeslána na {email}.",
+    "inviteSent": "Pokud má {email} účet, pozvánka je na cestě.",
     "pro": "Pro",
     "members": "Členové",
     "joinedHouseholds": "Připojené domácnosti",

@@ -55,7 +55,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         });
 
         // Invitations — send requires verified email
-        Route::post('/invitations', [InvitationController::class, 'send']);
+        Route::post('/invitations', [InvitationController::class, 'send'])->middleware('throttle:invitations');
 
         // Lists
         Route::get('/lists', [ListController::class, 'index']);
