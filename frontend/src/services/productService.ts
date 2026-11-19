@@ -1,5 +1,5 @@
 import { apiFetch } from '@/services/api'
-import type { iProduct } from '@/types'
+import type { iListMeta, iProduct } from '@/types'
 
 export async function searchProducts(query: string, limit = 10): Promise<iProduct[]> {
   const params = new URLSearchParams({ q: query, limit: String(limit) })
@@ -10,7 +10,7 @@ export async function fetchProducts(params: {
   page?: number
   category_id?: number | null
   q?: string
-} = {}): Promise<{ data: iProduct[]; meta: { current_page: number; last_page: number; total: number } }> {
+} = {}): Promise<{ data: iProduct[]; meta: iListMeta }> {
   const query = new URLSearchParams()
   if (params.page) query.set('page', String(params.page))
   if (params.category_id) query.set('category_id', String(params.category_id))

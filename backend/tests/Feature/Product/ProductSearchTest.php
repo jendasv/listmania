@@ -52,4 +52,18 @@ class ProductSearchTest extends TestCase
         $this->actingAs($user)->getJson('/api/lists?search='.urlencode('%'))
             ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', '100% fun');
     }
+
+    public function test_catalog_uses_the_standard_pagination_meta(): void
+    {
+        $user = $this->createUserWithHousehold();
+        foreach (range(1, 11) as $i) {
+            $this->product($user, "Product {$i}");
+        }
+
+        $this->actingAs($user)->getJson('/api/products')
+            ->assertOk()
+            ->assertJsonCount(10, 'data')
+            ->assertExactJsonStructure(['data', 'meta' => ['current_page', 'last_page', 'total', 'per_page']])
+            ->assertJsonPath('meta', ['current_page' => 1, 'last_page' => 2, 'total' => 11, 'per_page' => 10]);
+    }
 }

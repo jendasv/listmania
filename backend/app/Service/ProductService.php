@@ -16,6 +16,9 @@ class ProductService
 {
     private const FREE_TIER_LIMIT = 50;
 
+    /** Same page size and meta shape as every other paginated endpoint. */
+    private const PER_PAGE = 10;
+
     /**
      * Autocomplete — search by name within the user's household.
      *
@@ -56,7 +59,7 @@ class ProductService
             $query->whereLike('name', LikePattern::contains($search));
         }
 
-        $paginated = $query->paginate(50, page: $page);
+        $paginated = $query->paginate(self::PER_PAGE, page: $page);
 
         return [
             'data' => $paginated->map(fn (Product $p) => $this->map($p))->values()->all(),
@@ -64,6 +67,7 @@ class ProductService
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
                 'total' => $paginated->total(),
+                'per_page' => $paginated->perPage(),
             ],
         ];
     }

@@ -229,7 +229,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onClickOutside } from '@vueuse/core'
-import type { iProduct, iUnitGroups } from '@/types'
+import type { iListMeta, iProduct, iUnitGroups } from '@/types'
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '@/services/productService'
 import { fetchCategories } from '@/services/categoryService'
 import { fetchUnits } from '@/services/unitService'
@@ -251,7 +251,7 @@ onClickOutside(infoRef, () => { showInfo.value = false })
 const products = ref<iProduct[]>([])
 const loading = ref(false)
 const pageError = ref('')
-const meta = ref({ current_page: 1, last_page: 1, total: 0 })
+const meta = ref<iListMeta>({ current_page: 1, last_page: 1, total: 0, per_page: 10 })
 
 import type { iCategoriesResponse } from '@/services/categoryService'
 const categories = ref<iCategoriesResponse>({ global: [], custom: [] })
