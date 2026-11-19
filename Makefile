@@ -39,3 +39,7 @@ pint:
 
 pint-test:
 	$(PHP) ./vendor/bin/pint --test
+# Dependency vulnerability scan — same checks as .github/workflows/security.yml
+audit:
+	$(PHP) composer audit --locked --abandoned=report
+	$(FRONT) npm audit --audit-level=high

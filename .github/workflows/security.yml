@@ -1,0 +1,60 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Advisories get published against code that hasn't changed — a daily run
+  # surfaces a newly vulnerable dependency even when nobody is pushing.
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  composer-audit:
+    name: Composer audit
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      # --locked audits composer.lock directly, no vendor/ install needed.
+      # Abandoned packages are reported but don't fail the build.
+      - name: Audit PHP dependencies
+        run: composer audit --locked --abandoned=report
+
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # npm audit reads package-lock.json, no install needed.
+      # Dev dependencies are included on purpose: build tooling runs in CI
+      # and on developer machines, so it is part of the attack surface too.
+      - name: Audit JS dependencies
+        run: npm audit --audit-level=high
