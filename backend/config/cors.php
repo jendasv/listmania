@@ -23,10 +23,13 @@ return [
         env('FRONTEND_URL', 'http://localhost:5173'),
     ],
 
-    'allowed_origins_patterns' => [
-        // Any private-network IP (10.x, 172.16-31.x, 192.168.x) on any port
+    // Any private-network IP (10.x, 172.16-31.x, 192.168.x) on any port — so
+    // phones on the developer's LAN can reach the dev server. Local only: in
+    // any other environment it would grant credentialed CORS access to
+    // whatever happens to be served from a private address.
+    'allowed_origins_patterns' => env('APP_ENV') === 'local' ? [
         '#^https?://(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})(?::\d+)?$#',
-    ],
+    ] : [],
 
     'allowed_headers' => ['Content-Type', 'X-XSRF-TOKEN', 'Accept', 'X-Socket-Id'],
 
