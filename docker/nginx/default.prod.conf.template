@@ -1,3 +1,5 @@
+server_tokens off;
+
 server {
     listen 80;
     server_name _;
@@ -28,11 +30,13 @@ server {
 
     client_max_body_size 20M;
 
+    include /etc/nginx/snippets/security-headers.conf;
+
     # Vue SPA built assets — Vite adds content hash, aggressive caching
     location ^~ /assets/ {
         root /var/www/spa;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        include /etc/nginx/snippets/security-headers.conf;
     }
 
     # Reverb WebSocket — nginx terminates SSL, proxies to reverb:6001
@@ -49,8 +53,8 @@ server {
     # Laravel static files published to public/ (Filament assets)
     location ^~ /vendor/ {
         alias /var/www/public/vendor/;
-        expires 30d;
-        add_header Cache-Control "public";
+        add_header Cache-Control "public, max-age=2592000";
+        include /etc/nginx/snippets/security-headers.conf;
     }
 
     # Laravel storage (public uploads)
@@ -68,8 +72,15 @@ server {
         fastcgi_read_timeout    60s;
     }
 
-    # Laravel backend routes
-    location ~ ^/(api|sanctum|admin|broadcasting) {
+    # Laravel backend routes — everything Laravel serves that isn't the SPA:
+    # API + Sanctum, Filament admin (+ its Livewire/Filament endpoints), the
+    # email verification link from the signup mail, and the /up health check.
+    location ~ ^/(api|sanctum|admin|broadcasting|livewire|filament|email/verify)(/|$) {
+        root /var/www/public;
+        try_files $uri /index.php?$query_string;
+    }
+
+    location = /up {
         root /var/www/public;
         try_files $uri /index.php?$query_string;
     }
@@ -79,5 +90,7 @@ server {
         root /var/www/spa;
         try_files $uri $uri/ /index.html;
         add_header Cache-Control "no-cache";
+        include /etc/nginx/snippets/security-headers.conf;
+        include /etc/nginx/snippets/spa-csp.conf;
     }
 }
