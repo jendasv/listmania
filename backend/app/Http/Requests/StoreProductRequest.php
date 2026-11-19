@@ -8,6 +8,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductRequest extends FormRequest
 {
+    use ScopesToHousehold;
+
     public function authorize(): bool
     {
         return true;
@@ -20,12 +22,12 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'category_id' => ['sometimes', 'nullable', 'integer', 'exists:categories,id'],
+            'category_id' => ['sometimes', 'nullable', 'integer', $this->categoryVisibleToHousehold()],
             'preferred_unit_id' => ['sometimes', 'nullable', 'integer', 'exists:units,id'],
             'preferred_quantity' => ['sometimes', 'nullable', 'numeric', 'min:0.01'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:500'],
             'barcode' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'global_product_id' => ['sometimes', 'nullable', 'integer', 'exists:global_products,id'],
+            'global_product_id' => ['sometimes', 'nullable', 'integer', $this->globalProductVisibleToHousehold()],
         ];
     }
 }

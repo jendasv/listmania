@@ -8,6 +8,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductRequest extends FormRequest
 {
+    use ScopesToHousehold;
+
     public function authorize(): bool
     {
         return true;
@@ -20,7 +22,7 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'category_id' => ['sometimes', 'nullable', 'integer', 'exists:categories,id'],
+            'category_id' => ['sometimes', 'nullable', 'integer', $this->categoryVisibleToHousehold()],
             'preferred_unit_id' => ['sometimes', 'nullable', 'integer', 'exists:units,id'],
             'preferred_quantity' => ['sometimes', 'nullable', 'numeric', 'min:0.01'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:500'],
