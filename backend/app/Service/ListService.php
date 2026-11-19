@@ -70,12 +70,12 @@ class ListService
         }
 
         match ($sort) {
-            'az' => $query->orderBy('lists.name', 'ASC'),
-            'za' => $query->orderBy('lists.name', 'DESC'),
+            'az' => $query->orderBy('lists.name', 'asc'),
+            'za' => $query->orderBy('lists.name', 'desc'),
             'items-desc' => $query->orderByRaw('items_count DESC'),
             'items-asc' => $query->orderByRaw('items_count ASC'),
-            'newest' => $query->orderBy('lists.created_at', 'DESC'),
-            'oldest' => $query->orderBy('lists.created_at', 'ASC'),
+            'newest' => $query->orderBy('lists.created_at', 'desc'),
+            'oldest' => $query->orderBy('lists.created_at', 'asc'),
             default => $query->orderByRaw('list_user_order.sort_order IS NULL, list_user_order.sort_order ASC'),
         };
 
