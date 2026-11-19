@@ -117,6 +117,12 @@ class AuthController extends Controller
 
         $emailChanged = isset($validated['email']) && $validated['email'] !== $user->email;
 
+        // The email is where password resets go — changing it without proving
+        // the password would turn a stolen session into a full account takeover.
+        if ($emailChanged) {
+            $request->validate(['current_password' => ['required', 'string', 'current_password']]);
+        }
+
         $user->fill($validated);
 
         if ($emailChanged) {
