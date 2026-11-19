@@ -23,7 +23,14 @@ class ListController extends Controller
     {
         $this->authorize('viewAny', Liste::class);
 
-        return new JsonResponse($this->listService->getAllLists($request->user(), $request->only(['search', 'filter', 'sort', 'page'])));
+        $params = $request->validate([
+            'search' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'filter' => ['sometimes', 'string', 'in:all,shared,private'],
+            'sort' => ['sometimes', 'string', 'in:custom,az,za,items-desc,items-asc,newest,oldest'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
+        return new JsonResponse($this->listService->getAllLists($request->user(), $params));
     }
 
     public function show(Request $request, int $id): JsonResponse

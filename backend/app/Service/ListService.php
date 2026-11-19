@@ -30,7 +30,7 @@ class ListService
     }
 
     /**
-     * @param  array<string, string>  $params
+     * @param  array<string, mixed>  $params
      * @return array<string, mixed>
      */
     public function getAllLists(User $user, array $params = []): array

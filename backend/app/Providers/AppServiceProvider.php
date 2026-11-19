@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -40,6 +41,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
         $this->registerRateLimiters();
+
+        // Route ids are typed int in the controllers — without a pattern,
+        // /lists/abc reaches the action and dies with a TypeError (500)
+        // instead of the 404 a non-matching URL should get.
+        Route::pattern('id', '[0-9]+');
+        Route::pattern('itemId', '[0-9]+');
+        Route::pattern('userId', '[0-9]+');
 
         Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
