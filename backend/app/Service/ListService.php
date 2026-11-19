@@ -206,6 +206,7 @@ class ListService
     public function updateList(int $id, array $data, User $user): array
     {
         $list = $this->findList($id, $user);
+        $wasShared = $list->visibility === ListVisibility::Shared->value;
 
         try {
             $list->name = $data['name'];
@@ -217,11 +218,30 @@ class ListService
             throw new DatabaseOperationException('Failed to update list: '.$e->getMessage());
         }
 
-        if ($list->household_id) {
-            broadcast(new ListUpdated($list->household_id, $this->listMapper->map($list, listOnly: true)))->toOthers();
-        }
+        $this->broadcastListChange($list, $wasShared);
 
         return $this->listMapper->map($list, user: $user);
+    }
+
+    /**
+     * Other household members only ever see shared lists, so what they are told
+     * depends on the visibility before and after the change — a private list's
+     * name must never reach the household channel.
+     */
+    private function broadcastListChange(Liste $list, bool $wasShared): void
+    {
+        if ($list->household_id === null) {
+            return;
+        }
+
+        $isShared = $list->visibility === ListVisibility::Shared->value;
+
+        match (true) {
+            $wasShared && $isShared => broadcast(new ListUpdated($list->household_id, $this->listMapper->map($list, listOnly: true)))->toOthers(),
+            $wasShared => broadcast(new ListDeleted($list->household_id, $list->id))->toOthers(),
+            $isShared => broadcast(new ListCreated($list->household_id, $this->listMapper->map($list, listOnly: true)))->toOthers(),
+            default => null,
+        };
     }
 
     /**

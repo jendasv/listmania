@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Enums\ListVisibility;
 use App\Events\ItemAdded;
 use App\Events\ItemDeleted;
 use App\Events\ItemsReordered;
@@ -85,7 +86,7 @@ class ItemService
             throw new DatabaseOperationException('Failed to create item: '.$e->getMessage());
         }
 
-        if ($list->household_id) {
+        if ($this->broadcastsToHousehold($list)) {
             broadcast(new ItemAdded($list->household_id, $this->itemMapper->map($item)))->toOthers();
         }
 
@@ -146,7 +147,7 @@ class ItemService
         }
 
         $item->loadMissing('unit');
-        if ($list->household_id) {
+        if ($this->broadcastsToHousehold($list)) {
             broadcast(new ItemUpdated($list->household_id, $this->itemMapper->map($item)))->toOthers();
         }
 
@@ -166,7 +167,7 @@ class ItemService
                 ->update(['sort_order' => $position]);
         }
 
-        if ($list->household_id) {
+        if ($this->broadcastsToHousehold($list)) {
             broadcast(new ItemsReordered($list->household_id, $listId, $orderedIds))->toOthers();
         }
     }
@@ -183,9 +184,18 @@ class ItemService
             throw new DatabaseOperationException('Failed to delete item: '.$e->getMessage());
         }
 
-        if ($list->household_id) {
+        if ($this->broadcastsToHousehold($list)) {
             broadcast(new ItemDeleted($list->household_id, ['id' => $itemId, 'listId' => $listId]))->toOthers();
         }
+    }
+
+    /**
+     * The household channel reaches every member, so only shared lists may be
+     * broadcast on it — a private list's items are visible to its creator only.
+     */
+    private function broadcastsToHousehold(Liste $list): bool
+    {
+        return $list->household_id !== null && $list->visibility === ListVisibility::Shared->value;
     }
 
     private function findItem(int $listId, int $itemId, User $user): ListItem
