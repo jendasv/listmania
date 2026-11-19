@@ -9,7 +9,6 @@ use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 class CategoryController extends Controller
 {
@@ -65,19 +64,15 @@ class CategoryController extends Controller
         $household = $request->user()->household();
 
         if ($household === null) {
-            return new JsonResponse(['error' => 'No active household.'], 422);
+            return new JsonResponse(['message' => 'No active household.'], 422);
         }
 
-        try {
-            $category = Category::create([
-                'household_id' => $household->id,
-                'is_global' => false,
-                'name' => $request->string('name')->toString(),
-                'sort_order' => 0,
-            ]);
-        } catch (Throwable $e) {
-            return new JsonResponse(['error' => 'Failed to create category.'], 500);
-        }
+        $category = Category::create([
+            'household_id' => $household->id,
+            'is_global' => false,
+            'name' => $request->string('name')->toString(),
+            'sort_order' => 0,
+        ]);
 
         return new JsonResponse(['id' => $category->id, 'name' => $category->name, 'is_global' => false], 201);
     }
@@ -96,7 +91,7 @@ class CategoryController extends Controller
             ->first();
 
         if ($category === null) {
-            return new JsonResponse(['error' => 'Category not found.'], 404);
+            return new JsonResponse(['message' => 'Category not found.'], 404);
         }
 
         $category->name = $request->string('name')->toString();
@@ -115,7 +110,7 @@ class CategoryController extends Controller
             ->first();
 
         if ($category === null) {
-            return new JsonResponse(['error' => 'Category not found.'], 404);
+            return new JsonResponse(['message' => 'Category not found.'], 404);
         }
 
         // Detach products before deleting category

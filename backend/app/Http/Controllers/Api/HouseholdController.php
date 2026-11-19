@@ -29,7 +29,7 @@ class HouseholdController extends Controller
         $joined = $households->filter(fn ($h) => $h->pivot->role !== HouseholdRole::Owner->value)->values(); // @phpstan-ignore-line
 
         if (! $own) {
-            return response()->json(['error' => 'No household found.'], 404);
+            return response()->json(['message' => 'No household found.'], 404);
         }
 
         return response()->json([
@@ -46,7 +46,7 @@ class HouseholdController extends Controller
         $household = $user->households()->wherePivot('role', HouseholdRole::Owner->value)->first();
 
         if (! $household) {
-            return response()->json(['error' => 'No household found.'], 404);
+            return response()->json(['message' => 'No household found.'], 404);
         }
 
         $this->authorize('update', $household);
@@ -65,7 +65,7 @@ class HouseholdController extends Controller
         $household = Household::find($id);
 
         if (! $household || ! $user->households()->where('households.id', $id)->exists()) {
-            return response()->json(['error' => 'Household not found.'], 404);
+            return response()->json(['message' => 'Household not found.'], 404);
         }
 
         $this->authorize('leave', $household);
@@ -98,7 +98,7 @@ class HouseholdController extends Controller
         $household = $owner->households()->wherePivot('role', HouseholdRole::Owner->value)->first();
 
         if (! $household) {
-            return response()->json(['error' => 'No household found.'], 404);
+            return response()->json(['message' => 'No household found.'], 404);
         }
 
         $this->authorize('removeMember', $household);
@@ -106,7 +106,7 @@ class HouseholdController extends Controller
         $member = User::find($userId);
 
         if (! $member || ! $household->members()->where('users.id', $userId)->wherePivot('role', HouseholdRole::Member->value)->exists()) {
-            return response()->json(['error' => 'Member not found in your household.'], 404);
+            return response()->json(['message' => 'Member not found in your household.'], 404);
         }
 
         // Move member's private lists back to their own household

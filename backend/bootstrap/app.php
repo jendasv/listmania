@@ -21,27 +21,27 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (AuthenticationException $e, Request $request): ?JsonResponse {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return new JsonResponse(['error' => 'Unauthenticated.'], 401);
-            }
+        // Every API error has the same shape as Laravel's own validation errors:
+        // { message: string, errors?: { field: string[] } }. Framework exceptions
+        // (404, 405, 429, ValidationException...) already render that way for
+        // JSON requests — only the app's own exception types need mapping here.
+        $isApi = fn (Request $request): bool => $request->expectsJson() || $request->is('api/*');
 
-            return null;
+        $exceptions->render(function (AuthenticationException $e, Request $request) use ($isApi): ?JsonResponse {
+            return $isApi($request) ? new JsonResponse(['message' => 'Unauthenticated.'], 401) : null;
         });
 
-        $exceptions->render(function (AuthorizationException $e, Request $request): ?JsonResponse {
-            if ($request->expectsJson() || $request->is('api/*')) {
-                return new JsonResponse(['error' => $e->getMessage() ?: 'This action is not authorized.'], 403);
-            }
-
-            return null;
+        $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi): ?JsonResponse {
+            return $isApi($request)
+                ? new JsonResponse(['message' => $e->getMessage() ?: 'This action is not authorized.'], 403)
+                : null;
         });
 
         $exceptions->render(function (ApiException $e): JsonResponse {
-            $body = ['error' => $e->getMessage()];
+            $body = ['message' => $e->getMessage()];
 
             if ($e instanceof ValidationException && $e->getDetails() !== []) {
-                $body['details'] = $e->getDetails();
+                $body['errors'] = array_map(fn (string $message): array => [$message], $e->getDetails());
             }
 
             return new JsonResponse($body, $e->getStatusCode());

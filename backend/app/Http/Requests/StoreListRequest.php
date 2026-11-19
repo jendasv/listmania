@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\ListType;
 use App\Enums\ListVisibility;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
 class StoreListRequest extends FormRequest

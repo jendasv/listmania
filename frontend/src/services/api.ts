@@ -2,11 +2,8 @@ import echo from '@/plugins/echo'
 
 const API_URL = '/api'
 
-// The backend doesn't return one consistent shape: default Laravel validation
-// (auth endpoints) sends { message, errors }, while FormRequest-based
-// endpoints (lists/items/products) send { error, details } instead — both
-// with the same { field: string[] } validation-message structure underneath.
-// Normalized here so every caller of apiFetch only ever has to know one shape.
+// Every backend error has Laravel's standard shape: { message, errors? },
+// where errors maps a field name to its validation messages.
 export interface ApiError {
   status: number
   message: string
@@ -53,8 +50,8 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
     const body = await response.json().catch(() => ({}))
     const apiError: ApiError = {
       status: response.status,
-      message: body.message ?? body.error ?? `API error: ${response.status}`,
-      errors: body.errors ?? body.details,
+      message: body.message ?? `API error: ${response.status}`,
+      errors: body.errors,
     }
     throw apiError
   }

@@ -61,7 +61,7 @@ class ListCrudTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonPath('details.name.0', 'The name field is required.');
+            ->assertJsonPath('errors.name.0', 'The name field is required.');
     }
 
     public function test_user_can_update_their_list(): void

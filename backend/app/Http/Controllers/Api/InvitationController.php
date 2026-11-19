@@ -30,16 +30,16 @@ class InvitationController extends Controller
 
         $invitee = User::where('email', $request->email)->first();
         if (! $invitee) {
-            return response()->json(['error' => 'No account found with this email address.'], 422);
+            return response()->json(['message' => 'No account found with this email address.'], 422);
         }
 
         if ($invitee->id === $user->id) {
-            return response()->json(['error' => 'You cannot invite yourself.'], 422);
+            return response()->json(['message' => 'You cannot invite yourself.'], 422);
         }
 
         $alreadyMember = $household->members()->where('users.id', $invitee->id)->exists();
         if ($alreadyMember) {
-            return response()->json(['error' => 'User is already a member of this household.'], 422);
+            return response()->json(['message' => 'User is already a member of this household.'], 422);
         }
 
         Invitation::where('household_id', $household->id)
@@ -74,7 +74,7 @@ class InvitationController extends Controller
         $invitation = Invitation::where('token', $token)->first();
 
         if (! $invitation || ! $invitation->isPending()) {
-            return response()->json(['error' => 'Invalid or expired invitation.'], 404);
+            return response()->json(['message' => 'Invalid or expired invitation.'], 404);
         }
 
         $this->authorize('accept', $invitation);
@@ -109,7 +109,7 @@ class InvitationController extends Controller
         $invitation = Invitation::where('token', $token)->first();
 
         if (! $invitation || ! $invitation->isPending()) {
-            return response()->json(['error' => 'Invalid or expired invitation.'], 404);
+            return response()->json(['message' => 'Invalid or expired invitation.'], 404);
         }
 
         $this->authorize('decline', $invitation);

@@ -86,7 +86,7 @@ class GlobalProductController extends Controller
         $household = $request->user()->household();
 
         if ($household === null) {
-            return new JsonResponse(['error' => 'No active household.'], 422);
+            return new JsonResponse(['message' => 'No active household.'], 422);
         }
 
         // If barcode already exists for this household, return it

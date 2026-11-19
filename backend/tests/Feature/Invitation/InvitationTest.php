@@ -52,7 +52,7 @@ class InvitationTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonFragment(['error' => 'No account found with this email address.']);
+            ->assertJsonFragment(['message' => 'No account found with this email address.']);
     }
 
     public function test_cannot_invite_yourself(): void
@@ -64,7 +64,7 @@ class InvitationTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonFragment(['error' => 'You cannot invite yourself.']);
+            ->assertJsonFragment(['message' => 'You cannot invite yourself.']);
     }
 
     public function test_cannot_invite_existing_member(): void
@@ -78,7 +78,7 @@ class InvitationTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonFragment(['error' => 'User is already a member of this household.']);
+            ->assertJsonFragment(['message' => 'User is already a member of this household.']);
     }
 
     public function test_sending_new_invitation_expires_previous_pending_one(): void
