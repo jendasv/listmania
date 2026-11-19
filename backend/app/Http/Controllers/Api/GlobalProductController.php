@@ -21,7 +21,7 @@ class GlobalProductController extends Controller
     public function search(Request $request): JsonResponse
     {
         $request->validate([
-            'barcode' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'barcode' => ['sometimes', 'nullable', 'string', 'alpha_dash:ascii', 'max:50'],
             'q' => ['sometimes', 'nullable', 'string', 'min:2', 'max:100'],
         ]);
 
@@ -79,7 +79,7 @@ class GlobalProductController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'barcode' => ['required', 'string', 'max:50'],
+            'barcode' => ['required', 'string', 'alpha_dash:ascii', 'max:50'],
             'brand' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 

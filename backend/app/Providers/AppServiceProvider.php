@@ -97,6 +97,11 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(10)->by('invitations:'.($request->user()?->id ?: $request->ip()));
         });
 
+        // Barcode lookup — a miss fans out to 4 external APIs per request.
+        RateLimiter::for('barcode-lookup', function (Request $request) {
+            return Limit::perMinute(30)->by('barcode:'.($request->user()?->id ?: $request->ip()));
+        });
+
         // Global API — per user or IP
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());

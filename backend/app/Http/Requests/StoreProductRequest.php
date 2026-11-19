@@ -26,7 +26,7 @@ class StoreProductRequest extends FormRequest
             'preferred_unit_id' => ['sometimes', 'nullable', 'integer', 'exists:units,id'],
             'preferred_quantity' => ['sometimes', 'nullable', 'numeric', 'min:0.01'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'barcode' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'barcode' => ['sometimes', 'nullable', 'string', 'alpha_dash:ascii', 'max:50'],
             'global_product_id' => ['sometimes', 'nullable', 'integer', $this->globalProductVisibleToHousehold()],
         ];
     }

@@ -86,7 +86,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
         // Global product library
-        Route::get('/global-products/search', [GlobalProductController::class, 'search']);
+        Route::get('/global-products/search', [GlobalProductController::class, 'search'])->middleware('throttle:barcode-lookup');
         Route::post('/global-products', [GlobalProductController::class, 'store']);
 
         // Units

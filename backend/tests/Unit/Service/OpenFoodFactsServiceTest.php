@@ -7,6 +7,7 @@ namespace Tests\Unit\Service;
 use App\Service\OpenFoodFactsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -38,5 +39,38 @@ class OpenFoodFactsServiceTest extends TestCase
         $product = app(OpenFoodFactsService::class)->fetchAndStore('1234567890123');
 
         $this->assertNull($product);
+    }
+
+    public function test_non_gtin_barcode_never_reaches_the_external_apis(): void
+    {
+        Http::fake();
+
+        foreach (['../../../etc', '123abc', '123', '1234567890123456'] as $barcode) {
+            $this->assertNull(app(OpenFoodFactsService::class)->fetchAndStore($barcode));
+        }
+
+        Http::assertNothingSent();
+    }
+
+    public function test_definitive_miss_is_cached(): void
+    {
+        Http::fake(['*' => Http::response(['status' => 0], 404)]);
+        $service = app(OpenFoodFactsService::class);
+
+        $this->assertNull($service->fetchAndStore('1234567890123'));
+        $this->assertNull($service->fetchAndStore('1234567890123'));
+
+        Http::assertSentCount(4);
+    }
+
+    public function test_timeout_is_not_cached_as_miss(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Connection timed out'));
+        $service = app(OpenFoodFactsService::class);
+
+        $service->fetchAndStore('1234567890123');
+        $service->fetchAndStore('1234567890123');
+
+        $this->assertFalse(Cache::has('openfacts:miss:1234567890123'));
     }
 }
