@@ -30,13 +30,24 @@ class HouseholdInvitation extends Mailable
         return new Content(
             markdown: 'emails.household-invitation',
             with: [
-                'inviterName' => $this->invitation->invitedBy->name,
-                'householdName' => $this->invitation->household->name,
+                'inviterName' => self::escapeMarkdown($this->invitation->invitedBy->name),
+                'householdName' => self::escapeMarkdown($this->invitation->household->name),
                 'acceptUrl' => rtrim(config('app.frontend_url'), '/').'/invitations/'.$this->invitation->token.'/accept',
                 'declineUrl' => rtrim(config('app.frontend_url'), '/').'/invitations/'.$this->invitation->token.'/decline',
                 'expiresAt' => $this->invitation->expires_at->format('d. m. Y'),
             ],
         );
+    }
+
+    /**
+     * The names are user-chosen and the template is Markdown: Blade's {{ }}
+     * escapes HTML but not Markdown syntax, so a household named
+     * '[Confirm here](https://evil.example)' would render as a real link in
+     * an email that comes from us. Backslash-escaping makes it literal text.
+     */
+    private static function escapeMarkdown(string $text): string
+    {
+        return (string) preg_replace('/([\\\\`*_{}\[\]()#+\-.!|<>~])/', '\\\\$1', $text);
     }
 
     /** @return array<int, Attachment> */
