@@ -25,7 +25,7 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, string $id, 
     }
 
     return redirect(config('app.frontend_url').'/email-verified');
-})->middleware(['signed'])->name('verification.verify');
+})->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
 Route::get('/admin/locale/{locale}', function (string $locale) {
     if (in_array($locale, config('locales'))) {
@@ -34,8 +34,3 @@ Route::get('/admin/locale/{locale}', function (string $locale) {
 
     return redirect()->back();
 })->middleware(['auth', 'web'])->name('admin.locale');
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return response()->json(['message' => 'Verification link sent.']);
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
