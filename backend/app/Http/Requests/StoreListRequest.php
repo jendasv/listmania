@@ -25,7 +25,7 @@ class StoreListRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'list_type' => ['sometimes', new Enum(ListType::class)],
             'visibility' => ['sometimes', new Enum(ListVisibility::class)],
-            'items' => ['sometimes', 'array'],
+            'items' => ['sometimes', 'array', 'max:200'],
             'items.*.name' => ['required', 'string', 'max:255'],
             'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
         ];

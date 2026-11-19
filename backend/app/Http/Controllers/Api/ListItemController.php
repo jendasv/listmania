@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 
 class ListItemController extends Controller
 {
+    /** Each id costs one UPDATE — an unbounded array is a cheap way to tie up the database. */
+    private const MAX_REORDER = 500;
+
     public function __construct(private readonly ItemService $itemService) {}
 
     public function show(Request $request, int $id, int $itemId): JsonResponse
@@ -39,7 +42,7 @@ class ListItemController extends Controller
 
     public function reorder(Request $request, int $id): JsonResponse
     {
-        $request->validate(['order' => ['required', 'array'], 'order.*' => ['integer']]);
+        $request->validate(['order' => ['required', 'array', 'max:'.self::MAX_REORDER], 'order.*' => ['integer', 'distinct']]);
         $this->itemService->reorderItems($id, $request->input('order'), $request->user());
 
         return new JsonResponse(null, 204);

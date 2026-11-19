@@ -251,16 +251,18 @@ class ListService
     {
         $accessibleIds = $this->accessibleListsQuery($user)->whereIn('id', $orderedIds)->pluck('id')->all();
 
-        foreach ($orderedIds as $position => $id) {
-            if (! in_array($id, $accessibleIds, true)) {
-                continue;
-            }
+        DB::transaction(function () use ($orderedIds, $accessibleIds, $user): void {
+            foreach ($orderedIds as $position => $id) {
+                if (! in_array($id, $accessibleIds, true)) {
+                    continue;
+                }
 
-            DB::table('list_user_order')->updateOrInsert(
-                ['user_id' => $user->id, 'list_id' => $id],
-                ['sort_order' => $position],
-            );
-        }
+                DB::table('list_user_order')->updateOrInsert(
+                    ['user_id' => $user->id, 'list_id' => $id],
+                    ['sort_order' => $position],
+                );
+            }
+        });
     }
 
     public function deleteList(int $id, User $user): void

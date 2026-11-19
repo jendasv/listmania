@@ -18,6 +18,7 @@ use App\Models\Liste;
 use App\Models\ListItem;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class ItemService
@@ -161,11 +162,13 @@ class ItemService
     {
         $list = $this->listService->findList($listId, $user);
 
-        foreach ($orderedIds as $position => $itemId) {
-            ListItem::where('id', $itemId)
-                ->where('list_id', $listId)
-                ->update(['sort_order' => $position]);
-        }
+        DB::transaction(function () use ($orderedIds, $listId): void {
+            foreach ($orderedIds as $position => $itemId) {
+                ListItem::where('id', $itemId)
+                    ->where('list_id', $listId)
+                    ->update(['sort_order' => $position]);
+            }
+        });
 
         if ($this->broadcastsToHousehold($list)) {
             broadcast(new ItemsReordered($list->household_id, $listId, $orderedIds))->toOthers();
